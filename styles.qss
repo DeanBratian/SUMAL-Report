@@ -1,0 +1,471 @@
+/* ========================================================================================
+   SUMAL Report Application Stylesheet
+   ======================================================================================== */
+
+QWidget {
+    /* Base style for all widgets in all windows */
+    background-color: #f3f3f3;
+    color: #202020;
+    font-family: 'Segoe UI', sans-serif;
+    font-size: 14px;
+}
+
+QLabel {
+    color: #202020;
+    background: transparent;
+}
+
+/* ========================================================================================
+   Table Styles
+   ======================================================================================== */
+
+QTableWidget {
+    background-color: #ffffff;
+    border: 1px solid #e5e5e5;
+    border-radius: 4px;
+    gridline-color: #f0f0f0;
+    selection-background-color: #e5f3ff;
+    selection-color: #202020;
+}
+
+QTableWidget::item {
+    padding: 10px;
+    border: none;
+}
+
+QTableWidget::item:selected {
+    background-color: #e5f3ff;
+}
+
+QHeaderView::section {
+    background-color: #fafafa;
+    color: #202020;
+    padding: 12px;
+    border: none;
+    border-bottom: 1px solid #e5e5e5;
+    border-right: 1px solid #f0f0f0;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+QHeaderView::section:hover {
+    background-color: #f0f0f0;
+}
+
+/* ========================================================================================
+   Scroll Bar Styles
+   ======================================================================================== */
+
+QScrollBar:vertical {
+    background-color: #fafafa;
+    width: 12px;
+    border: none;
+}
+
+QScrollBar:horizontal {
+    background-color: #fafafa;
+    height: 12px;
+    border: none;
+}
+
+QScrollBar::handle:vertical, QScrollBar::handle:horizontal {
+    background-color: #c1c1c1;
+    border-radius: 6px;
+}
+
+QScrollBar::handle:vertical {
+    min-height: 30px;
+}
+
+QScrollBar::handle:horizontal {
+    min-width: 30px;
+}
+
+QScrollBar::handle:vertical:hover, QScrollBar::handle:horizontal:hover {
+    background-color: #a0a0a0;
+}
+
+QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+    height: 0px;
+}
+
+QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {
+    width: 0px;
+}
+
+/* ========================================================================================
+   Splitter and Scroll Area
+   ======================================================================================== */
+
+QSplitter::handle {
+    /* The divider between the top and bottom panels in the main window */
+    background-color: #e5e5e5;
+}
+
+QScrollArea {
+    background-color: transparent;
+    border: none;
+}
+
+/* ========================================================================================
+   Status Label (main window) — shared shape, per-state colors
+   ======================================================================================== */
+
+QLabel[class="status-label-waiting"],
+QLabel[class="status-label-ready"],
+QLabel[class="status-label-processing"],
+QLabel[class="status-label-success"],
+QLabel[class="status-label-processed-with-errors"],
+QLabel[class="status-label-report-complete"] {
+    font-size: 14px;
+    font-weight: 600;
+    padding: 8px;
+    border-radius: 6px;
+}
+
+QLabel[class="status-label-waiting"] {
+    color: #555555;
+    background-color: #f0f0f0;
+    border: 1px solid #d1d1d1;
+}
+
+QLabel[class="status-label-ready"] {
+    color: #0067c0;
+    background-color: #e5f3ff;
+    border: 1px solid #b5d4ff;
+}
+
+QLabel[class="status-label-processing"] {
+    color: #ff8800;
+    background-color: #fff3e0;
+    border: 1px solid #ffcc80;
+}
+
+QLabel[class="status-label-success"] {
+    color: #2e7d32;
+    background-color: #e8f5e9;
+    border: 1px solid #81c784;
+}
+
+QLabel[class="status-label-processed-with-errors"] {
+    color: #d50000;
+    background-color: #ffdde0;
+    border: 1px solid #ff8a80;
+}
+
+QLabel[class="status-label-report-complete"] {
+    color: #00695c;
+    background-color: #e0f2f1;
+    border: 1px solid #80cbc4;
+}
+
+/* ========================================================================================
+   Main Window Frames and Info Labels
+   ======================================================================================== */
+
+QFrame[class="main-frame"] {
+    /* Top and bottom panels in the main window */
+    background-color: #ffffff;
+    border: 1px solid #e5e5e5;
+    border-radius: 8px;
+}
+
+QFrame[class="info-frame"] {
+    /* Containers for the folder info and file list areas */
+    background-color: #f3f9ff;
+    border: 1px solid #d1e5ff;
+    border-radius: 8px;
+}
+
+QLabel[class="folder-label"],
+QLabel[class="file-list-box"] {
+    font-size: 16px;
+    font-weight: 600;
+    color: #303030;
+    background-color: #ffffff;
+    border: 1px solid #b5d4ff;
+    border-radius: 6px;
+    padding: 8px;
+}
+
+/* ========================================================================================
+   Buttons — shared look, per-role colors
+   ======================================================================================== */
+
+QPushButton[class="btn-select"],
+QPushButton[class="btn-parse"],
+QPushButton[class="btn-deposit-data"],
+QPushButton[class="btn-reports"],
+QPushButton[class="btn-close"],
+QPushButton[class="btn-save"] {
+    color: white;
+    font-weight: 600;
+    border-radius: 6px;
+}
+
+QPushButton[class="btn-close"],
+QPushButton[class="btn-save"] {
+    /* Dialog buttons are smaller than the main action row */
+    min-width: 100px;
+    padding: 6px 12px;
+    font-size: 14px;
+}
+
+QPushButton[class="btn-select"],
+QPushButton[class="btn-close"] {
+    background-color: #4aa3ff;
+    border: 1px solid #3c8ae6;
+}
+
+QPushButton[class="btn-select"]:hover,
+QPushButton[class="btn-close"]:hover {
+    background-color: #3798ff;
+}
+
+QPushButton[class="btn-parse"],
+QPushButton[class="btn-save"] {
+    background-color: #0067c0;
+    border: 1px solid #0067c0;
+}
+
+QPushButton[class="btn-parse"]:hover,
+QPushButton[class="btn-save"]:hover {
+    background-color: #005a9e;
+}
+
+QPushButton[class="btn-deposit-data"] {
+    background-color: #26a69a;
+    border: 1px solid #1f8c7d;
+}
+
+QPushButton[class="btn-deposit-data"]:hover {
+    background-color: #1e8b7b;
+}
+
+QPushButton[class="btn-reports"] {
+    background-color: #3fc4d6;
+    border: 1px solid #33a9bb;
+}
+
+QPushButton[class="btn-reports"]:hover {
+    background-color: #2fb7ca;
+}
+
+QPushButton[class="btn-parse"]:disabled,
+QPushButton[class="btn-deposit-data"]:disabled,
+QPushButton[class="btn-reports"]:disabled,
+QPushButton[class="btn-save"]:disabled {
+    background-color: #d1d1d1;
+    color: #808080;
+}
+
+/* ========================================================================================
+   Message Boxes
+   ======================================================================================== */
+
+QMessageBox {
+    background: white;
+    border: none;
+}
+
+QMessageBox QWidget {
+    /* Text, icon and inner containers sit directly on the white dialog */
+    background: transparent;
+    border: none;
+}
+
+/* ========================================================================================
+   Details / Deposit Data Window Panels
+   ======================================================================================== */
+
+QWidget[class="title-panel"] {
+    background-color: #d9ecff;
+    border: 1px solid #b5d4ff;
+    border-radius: 8px;
+    padding: 5px;
+}
+
+QWidget[class="title-panel"] QLabel {
+    background-color: transparent;
+    border: none;
+}
+
+QLabel[class="title-label"] {
+    font-size: 20px;
+    font-weight: 700;
+    color: #202020;
+}
+
+QWidget[class="details-info-panel"] {
+    background-color: #f3f9ff;
+    border: 1px solid #b5d4ff;
+    border-radius: 8px;
+    padding: 15px;
+}
+
+QWidget[class="details-info-panel"] QLabel {
+    background-color: transparent;
+    border: none;
+}
+
+/* ========================================================================================
+   Deposit Cards
+   ======================================================================================== */
+
+QWidget[class="deposit-card"] {
+    background-color: #ffffff;
+    border: 2px solid #d1d1d1;
+    border-radius: 10px;
+}
+
+QWidget[class="deposit-card-header"] {
+    background-color: #f8f9fa;
+    border: none;
+    border-bottom: 2px solid #e5e5e5;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    padding: 4px 0px;
+}
+
+QWidget[class="deposit-card-header"] QLabel {
+    background: transparent;
+    font-size: 15px;
+    font-weight: 600;
+    color: #202020;
+    padding: 5px;
+}
+
+QFrame[class="card-separator"] {
+    background-color: #d8dde3;
+    border: none;
+}
+
+QLabel[class="deposit-name"][expanded="true"] {
+    color: #0067c0;
+    font-weight: 600;
+}
+
+QToolButton {
+    /* Expand / collapse button on deposit cards (icon only) */
+    background: transparent;
+    border: none;
+    padding: 4px;
+    border-radius: 4px;
+}
+
+QToolButton:hover {
+    background-color: rgba(0, 103, 192, 0.2);
+}
+
+QWidget[class="card-widget"] {
+    background-color: transparent;
+}
+
+/* Deposit type and source badges */
+
+QLabel[class="deposit-type-badge"],
+QLabel[class="deposit-source-badge"] {
+    border-radius: 10px;
+    padding: 3px 10px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+QLabel[class="deposit-type-badge"][tip_depozit="lr"] {
+    background-color: #fff3e0;
+    color: #e65100;
+    border: 1px solid #ffb74d;
+}
+
+QLabel[class="deposit-type-badge"][tip_depozit="principal"] {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+    border: 1px solid #81c784;
+}
+
+QLabel[class="deposit-type-badge"][tip_depozit="extern"] {
+    background-color: #e1f5fe;
+    color: #0277bd;
+    border: 1px solid #81d4fa;
+}
+
+QLabel[class="deposit-source-badge"][sursa_depozit="excel"] {
+    background-color: #ede7f6;
+    color: #4527a0;
+    border: 1px solid #b39ddb;
+}
+
+QLabel[class="deposit-source-badge"][sursa_depozit="avize"] {
+    background-color: #e0f7fa;
+    color: #00695c;
+    border: 1px solid #80cbc4;
+}
+
+/* Completion indicator (✔ / 🗙) — fixed width so the header doesn't shift */
+
+QLabel[class="label-status"] {
+    min-width: 24px;
+    font-weight: 700;
+    background-color: transparent;
+    border: none;
+}
+
+QLabel[class="label-status"][state="invalid"] {
+    color: #d50000;
+}
+
+QLabel[class="label-status"][state="valid"] {
+    color: #2e7d32;
+}
+
+/* ========================================================================================
+   Price Panel (expanded area of a deposit card)
+   ======================================================================================== */
+
+QWidget[class="price-panel"] {
+    background-color: #ffffff;
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
+    padding: 8px;
+}
+
+QWidget[class="price-row"] {
+    background-color: #f3f9ff;
+    border: 1px solid #b5d4ff;
+    border-radius: 8px;
+}
+
+QWidget[class="price-panel"] QLabel {
+    font-size: 13px;
+    font-weight: 700;
+    color: #404040;
+    background: transparent;
+    border: none;
+}
+
+QWidget[class="price-panel"] QLineEdit {
+    background-color: #ffffff;
+    border: 1px solid #d1d1d1;
+    border-radius: 6px;
+    padding: 5px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+QWidget[class="price-panel"] QLineEdit:hover {
+    border: 1px solid #4aa3ff;
+    background-color: #f9fcff;
+}
+
+QWidget[class="price-panel"] QLineEdit:focus {
+    border: 1px solid #0067c0;
+    background-color: #ffffff;
+    font-weight: 700;
+}
+
+QWidget[class="price-panel"] QLineEdit:disabled {
+    background-color: #f0f0f0;
+    border: 1px solid #d1d1d1;
+    color: #a0a0a0;
+    font-weight: 400;
+}

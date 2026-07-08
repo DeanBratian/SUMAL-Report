@@ -1,0 +1,18 @@
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+
+# PyInstaller output
+build/
+dist/
+
+# Runtime output
+logs/
+
+# Real SUMAL data (private company data — integration test skips if absent)
+# inputs/
+
+# Local tool settings
+.claude/settings.local.json
