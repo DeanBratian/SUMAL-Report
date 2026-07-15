@@ -274,6 +274,11 @@ QMessageBox QWidget {
     border: none;
 }
 
+QMessageBox QDialogButtonBox {
+    /* Windows style right-aligns dialog buttons; keep them centered instead */
+    qproperty-centerButtons: true;
+}
+
 /* ========================================================================================
    Details / Deposit Data Window Panels
    ======================================================================================== */

@@ -13,6 +13,3 @@ logs/
 
 # Real SUMAL data (private company data — integration test skips if absent)
 # inputs/
-
-# Local tool settings
-.claude/settings.local.json
