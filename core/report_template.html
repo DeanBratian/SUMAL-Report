@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Raport SUMAL</title>
+<style>
+:root {
+  color-scheme: light;
+  --page: #f9f9f7; --surface: #fcfcfb;
+  --ink: #0b0b0b; --ink-2: #52514e; --muted: #898781;
+  --grid: #e1e0d9; --baseline: #c3c2b7; --ring: rgba(11,11,11,0.10);
+  --accent: #2a78d6; --accent-2: #008300;
+  --good: #0ca30c; --good-text: #006300; --warning: #fab219; --critical: #d03b3b;
+  --chip: #eef3fa; --band: #f0f4f9; --head: #1c5cab;
+  --prest: #3f3d3a; --prest-ink: #fcfcfb;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --page: #0d0d0d; --surface: #1a1a19;
+    --ink: #ffffff; --ink-2: #c3c2b7; --muted: #898781;
+    --grid: #2c2c2a; --baseline: #383835; --ring: rgba(255,255,255,0.10);
+    --accent: #3987e5; --accent-2: #008300;
+    --good: #0ca30c; --good-text: #0ca30c; --warning: #fab219; --critical: #d03b3b;
+    --chip: #21293a; --band: #20242b; --head: #86b6ef;
+    --prest: #b5b3ac; --prest-ink: #1a1a19;
+  }
+}
+* { box-sizing: border-box; margin: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--page); color: var(--ink);
+  font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+  padding-bottom: 60px;
+}
+.wrap { max-width: 1280px; margin: 0 auto; padding: 0 20px; }
+
+/* ---------- header ---------- */
+header {
+  background: linear-gradient(120deg, #0d366b, #1c5cab 55%, #256abf);
+  color: #fff; padding: 34px 0 78px;
+}
+header .wrap { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; }
+header h1 { font-size: 26px; font-weight: 700; letter-spacing: .2px; }
+header .sub { color: #cde2fb; margin-top: 6px; font-size: 14px; }
+header .period {
+  text-align: right; background: rgba(255,255,255,.10); border: 1px solid rgba(255,255,255,.18);
+  padding: 10px 16px; border-radius: 12px; font-size: 14px;
+}
+header .period b { font-size: 17px; display: block; }
+
+/* ---------- tabs ---------- */
+nav { margin-top: -46px; position: sticky; top: 0; z-index: 30; }
+nav .bar {
+  display: flex; gap: 4px; background: var(--surface); border: 1px solid var(--ring);
+  border-radius: 14px; padding: 6px; box-shadow: 0 6px 24px rgba(13,54,107,.10); flex-wrap: wrap;
+}
+nav button {
+  border: 0; background: none; color: var(--ink-2); font: inherit; font-weight: 600;
+  padding: 9px 18px; border-radius: 9px; cursor: pointer;
+}
+nav button:hover { background: var(--band); color: var(--ink); }
+nav button.on { background: var(--accent); color: #fff; }
+nav button .n {
+  background: rgba(127,127,127,.18); border-radius: 99px; font-size: 12px;
+  padding: 1px 8px; margin-left: 6px; font-variant-numeric: tabular-nums;
+}
+nav button.on .n { background: rgba(255,255,255,.25); }
+
+main section.tab { display: none; }
+main section.tab.on { display: block; animation: fade .18s ease; }
+@keyframes fade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; } }
+
+h2 { font-size: 18px; margin: 30px 0 12px; }
+h2 small { color: var(--muted); font-weight: 400; font-size: 13px; margin-left: 8px; }
+
+/* ---------- cards / tiles ---------- */
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-top: 26px; }
+.tile {
+  background: var(--surface); border: 1px solid var(--ring); border-radius: 14px; padding: 14px 16px;
+}
+.tile .k { color: var(--ink-2); font-size: 13px; }
+.tile .v { font-size: 24px; font-weight: 700; margin-top: 3px; }
+.tile .u { color: var(--muted); font-size: 13px; font-weight: 400; }
+.card { background: var(--surface); border: 1px solid var(--ring); border-radius: 14px; padding: 18px; }
+
+/* ---------- tables ---------- */
+.tblwrap { overflow-x: auto; border: 1px solid var(--ring); border-radius: 14px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: 13px; }
+th, td { padding: 6px 9px; text-align: right; white-space: nowrap; border-bottom: 1px solid var(--grid); }
+td.crop { max-width: 240px; overflow: hidden; text-overflow: ellipsis; }
+th { background: var(--band); color: var(--ink-2); font-weight: 600; position: sticky; top: 0; }
+td.l, th.l { text-align: left; }
+td.num { font-variant-numeric: tabular-nums; }
+tr:hover td { background: var(--band); }
+tr.total td { font-weight: 700; background: var(--chip); border-top: 2px solid var(--baseline); }
+tr.block td { background: var(--band); color: var(--head); font-weight: 700; font-size: 13px; letter-spacing: .4px; text-align: left; }
+td.dim { color: var(--muted); }
+.badge {
+  display: inline-block; font-size: 11px; font-weight: 600; border-radius: 99px; padding: 1px 8px;
+  background: var(--chip); color: var(--head); white-space: nowrap;
+}
+.badge.in  { background: rgba(42,120,214,.12); color: var(--accent); }
+.badge.out { background: rgba(0,131,0,.12);  color: var(--good-text); }
+/* ---------- prestare toggle switch ---------- */
+.tgl { position: relative; display: inline-block; width: 28px; height: 16px; vertical-align: middle; }
+.tgl input { opacity: 0; width: 0; height: 0; }
+.tgl .sl {
+  position: absolute; inset: 0; cursor: pointer; border-radius: 99px;
+  background: var(--baseline); transition: background .18s;
+}
+.tgl .sl::before {
+  content: ""; position: absolute; width: 10px; height: 10px; border-radius: 50%;
+  left: 3px; top: 3px; background: #fff; transition: transform .18s;
+  box-shadow: 0 1px 2px rgba(0,0,0,.25);
+}
+.tgl input:checked + .sl { background: var(--prest); }
+.tgl input:checked + .sl::before { transform: translateX(12px); }
+.tgl input:focus-visible + .sl { outline: 2px solid var(--accent); }
+tr.prest-row td:first-child { box-shadow: inset 3px 0 0 var(--prest); }
+
+/* ---------- expandable notice rows ---------- */
+tr.nrow { cursor: pointer; }
+.chev { display: inline-block; transition: transform .18s; color: var(--muted); font-size: 12px; }
+tr.open .chev { transform: rotate(90deg); }
+tr.detail > td { background: var(--band); padding: 14px 18px; white-space: normal; cursor: default; }
+tr.detail:hover > td { background: var(--band); }
+.dgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+.dcard { background: var(--surface); border: 1px solid var(--ring); border-radius: 10px; padding: 12px 14px; }
+.dcard h4 { font-size: 12px; letter-spacing: .5px; text-transform: uppercase; color: var(--head); margin-bottom: 8px; }
+.dcard .kv { display: flex; justify-content: space-between; gap: 12px; padding: 2px 0; font-size: 13px; }
+.dcard .kv .k { color: var(--ink-2); }
+.dcard .kv .v { font-variant-numeric: tabular-nums; }
+.dcard .kv.tot { border-top: 1px solid var(--grid); margin-top: 5px; padding-top: 6px; font-weight: 700; }
+.dcard .sp { color: var(--muted); font-size: 12.5px; padding: 0 0 4px 12px; }
+
+/* ---------- filters ---------- */
+.filters { display: flex; gap: 8px; margin: 14px 0; flex-wrap: wrap; align-items: center; }
+.filters .chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.chipbtn {
+  border: 1px solid var(--ring); background: var(--surface); color: var(--ink-2); font: inherit;
+  font-size: 13px; font-weight: 600; border-radius: 99px; padding: 5px 14px; cursor: pointer;
+}
+.chipbtn.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+.filters select, .filters input[type=search] {
+  font: inherit; font-size: 13px; padding: 6px 10px; border-radius: 9px;
+  border: 1px solid var(--ring); background: var(--surface); color: var(--ink);
+}
+
+/* ---------- charts ---------- */
+.legend { display: flex; gap: 16px; font-size: 13px; color: var(--ink-2); margin: 6px 0 14px; }
+.legend .sw { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+.bars .row { display: grid; grid-template-columns: 150px 1fr 135px; gap: 10px; align-items: center; padding: 3px 0; }
+.bars .lbl { font-size: 13px; color: var(--ink-2); text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bars .track { background: var(--band); position: relative; height: 20px; border-radius: 5px; overflow: hidden; }
+.bars .bar {
+  position: absolute; left: 0; top: 0; bottom: 0; border-radius: 0 5px 5px 0;
+  background: var(--accent); min-width: 2px; transition: width .25s ease;
+}
+.bars .bar.g { background: var(--accent-2); }
+.bars .val { font-size: 13px; font-variant-numeric: tabular-nums; color: var(--ink); white-space: nowrap; }
+.bars .val .pct { color: var(--muted); font-size: 12px; }
+.grp { margin: 4px 0 20px; }
+.grp h3 {
+  display: flex; justify-content: space-between; align-items: center; gap: 10px;
+  font-size: 13px; color: var(--head); margin: 14px 0 8px; letter-spacing: .4px;
+}
+.grp h3 .tchip {
+  background: var(--chip); color: var(--head); border-radius: 99px;
+  font-size: 12px; padding: 2px 11px; font-variant-numeric: tabular-nums;
+}
+
+/* ---------- deposits tab ---------- */
+.notice-banner {
+  border: 1px solid var(--ring); border-left: 4px solid var(--accent); background: var(--surface);
+  padding: 12px 16px; border-radius: 10px; margin: 18px 0; font-size: 14px; color: var(--ink-2);
+}
+.depgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 14px; margin-top: 14px; }
+.dep { background: var(--surface); border: 1px solid var(--ring); border-radius: 14px; padding: 16px 18px; }
+.dep h3 { font-size: 15px; margin-bottom: 2px; overflow-wrap: anywhere; }
+.dep .meta { display: flex; gap: 6px; flex-wrap: wrap; margin: 8px 0 6px; align-items: center; }
+.dep .pgrp {
+  display: grid; grid-template-columns: 82px 1fr; gap: 12px; align-items: center;
+  padding: 10px 0 4px; border-top: 1px solid var(--grid); margin-top: 8px;
+}
+.dep .pgrp:first-of-type { border-top: none; }
+.dep .glbl { font-size: 11px; letter-spacing: .5px; text-transform: uppercase; color: var(--head); font-weight: 700; line-height: 1.3; }
+.dep .glbl .u { display: block; color: var(--muted); font-weight: 400; text-transform: none; letter-spacing: 0; font-size: 11px; }
+.dep .frow { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 10px; }
+.dep .fld { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.dep .fld > span { font-size: 11.5px; color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dep input {
+  font: inherit; font-size: 14px; text-align: right; padding: 7px 10px; width: 100%;
+  border: 1px solid var(--ring); border-radius: 8px; background: var(--page); color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+.dep input:focus { outline: 2px solid var(--accent); border-color: transparent; }
+.dep input.empty { border-color: var(--critical); }
+.state { font-size: 13px; font-weight: 600; white-space: nowrap; }
+.state.ok { color: var(--good-text); }
+.state.miss { color: var(--critical); }
+.toolbar { display: flex; gap: 10px; margin-top: 18px; flex-wrap: wrap; }
+.btn {
+  font: inherit; font-weight: 600; font-size: 14px; border-radius: 10px; padding: 9px 18px; cursor: pointer;
+  border: 1px solid var(--ring); background: var(--surface); color: var(--ink);
+}
+.btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+.btn:hover { filter: brightness(1.05); }
+.hint { color: var(--muted); font-size: 13px; margin-top: 10px; }
+
+footer { margin-top: 40px; color: var(--muted); font-size: 13px; text-align: center; }
+.dash { color: var(--muted); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div>
+      <h1 id="hd-company"></h1>
+      <div class="sub" id="hd-sub"></div>
+    </div>
+    <div class="period">
+      Perioada raport
+      <b id="hd-period"></b>
+      <span id="hd-generated" style="opacity:.75"></span>
+    </div>
+  </div>
+</header>
+
+<nav><div class="wrap"><div class="bar">
+  <button data-tab="sumar" class="on">Sumar</button>
+  <button data-tab="avize">Avize <span class="n" id="n-avize"></span></button>
+  <button data-tab="specii">Volume pe specii</button>
+  <button data-tab="depozite">Depozite &amp; prețuri <span class="n" id="n-dep"></span></button>
+</div></div></nav>
+
+<main class="wrap">
+
+<section class="tab on" id="tab-sumar">
+  <div class="tiles" id="tiles"></div>
+
+  <h2>Totaluri pe sortimente <small>intrări vs ieșiri (m³)</small></h2>
+  <div class="card">
+    <div class="legend">
+      <span><span class="sw" style="background:var(--accent)"></span>Intrări</span>
+      <span><span class="sw" style="background:var(--accent-2)"></span>Ieșiri</span>
+    </div>
+    <div class="bars" id="chart-sortimente"></div>
+  </div>
+
+  <h2>Statistici generale</h2>
+  <div class="tblwrap"><table id="tbl-stats"></table></div>
+</section>
+
+<section class="tab" id="tab-avize">
+  <div class="filters">
+    <div class="chips" id="type-chips"></div>
+    <select id="f-transport"><option value="">Toate transporturile</option></select>
+    <input type="search" id="f-search" placeholder="Caută cod / proveniență…">
+  </div>
+  <div class="tblwrap"><table id="tbl-avize"></table></div>
+</section>
+
+<section class="tab" id="tab-specii">
+  <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(420px,1fr)); gap:14px; margin-top:26px">
+    <div class="card"><h2 style="margin-top:0">Intrări</h2><div id="specii-in"></div></div>
+    <div class="card"><h2 style="margin-top:0">Ieșiri</h2><div id="specii-out"></div></div>
+  </div>
+</section>
+
+<section class="tab" id="tab-depozite">
+  <div class="notice-banner">
+    Introdu prețurile unitare pentru depozitele de mai jos — <b>doar depozitele menționate în
+    avizele perioadei</b> apar aici. Valorile se salvează automat în acest browser și toate
+    totalurile din raport se recalculează pe loc. Pentru a le folosi și în rulările viitoare,
+    apasă „Exportă deposit_prices.json” și pune fișierul în folderul perioadei.
+  </div>
+  <div class="depgrid" id="depgrid"></div>
+  <div class="toolbar">
+    <button class="btn primary" id="btn-export">Exportă deposit_prices.json</button>
+    <button class="btn" id="btn-reset">Resetează la valorile din fișier</button>
+  </div>
+  <div class="hint" id="save-hint"></div>
+</section>
+
+</main>
+<footer id="foot"></footer>
+
+<script>
+"use strict";
+const DATA = /*__PAYLOAD__*/;
+
+/* ---------- domain constants (mirror core/enums + report_generator) ---------- */
+const INTRARE_T = new Set(["INTRARE_DIN_PARTIDA_PROPRIE", "INTRARE_DIN_SURSA_EXTERNA"]);
+const IESIRE_T  = new Set(["IESIRE_DIN_DEPOZIT_PRINCIPAL", "IESIRE_DIN_DEPOZIT_LR"]);
+const EXPL_T    = new Set(["INTRARE_DIN_PARTIDA_PROPRIE", "IESIRE_DIN_DEPOZIT_LR"]);
+const FIELD_LABELS = {
+  p_intrare_lr_mc: "Preț intrare Lemn rotund / m³",
+  p_intrare_lf_mc: "Preț intrare Lemn foc / m³",
+  p_intrare_ch_mc: "Preț intrare Cherestele / m³",
+  p_iesire_lr_mc:  "Preț ieșire Lemn rotund / m³",
+  p_iesire_lf_mc:  "Preț ieșire Lemn foc / m³",
+  p_iesire_ch_mc:  "Preț ieșire Cherestele / m³",
+  p_transport_mc:  "Preț transport / m³",
+  p_expl_mc:       "Preț exploatare / m³",
+};
+const LS_KEY = "sumal-prices-" + DATA.period.key;
+const LS_PRESTARI = "sumal-prestari-" + DATA.period.key;
+
+/* ---------- price state ---------- */
+const depositByName = {};
+DATA.deposits.forEach(d => depositByName[d.nume] = d);
+
+function filePrices() {
+  const out = {};
+  DATA.deposits.forEach(d => out[d.nume] = { ...d.prices });
+  return out;
+}
+let prices = filePrices();
+try {
+  const saved = JSON.parse(localStorage.getItem(LS_KEY) || "null");
+  if (saved) {
+    for (const d of DATA.deposits) {
+      if (saved[d.nume]) {
+        for (const f of d.enabled_fields) {
+          if (typeof saved[d.nume][f] === "number") prices[d.nume][f] = saved[d.nume][f];
+        }
+      }
+    }
+  }
+} catch (e) { /* corrupted storage — file values win */ }
+
+function depositComplete(dep) {
+  return dep.enabled_fields.every(f => (prices[dep.nume][f] || 0) > 0);
+}
+
+/* ---------- math (1:1 port of report_generator._populate_notice_totals) ---------- */
+const r2 = v => Math.round((v + Number.EPSILON) * 100) / 100;
+const r6 = v => Math.round((v + Number.EPSILON) * 1e6) / 1e6;
+
+function computeNotice(n) {
+  const dep = depositByName[n.provenienta];
+  const p = prices[dep.nume];
+  const isIn = INTRARE_T.has(n.tip);
+  const uLr = (isIn ? p.p_intrare_lr_mc : p.p_iesire_lr_mc) || 0;
+  const uLf = (isIn ? p.p_intrare_lf_mc : p.p_iesire_lf_mc) || 0;
+  const uCh = (isIn ? p.p_intrare_ch_mc : p.p_iesire_ch_mc) || 0;
+
+  const mat = uLr * n.v_lr + uLf * n.v_lf + uCh * n.v_ch;
+  const transp = n.v_total * (p.p_transport_mc || 0);
+  const expl = EXPL_T.has(n.tip) ? n.v_total * (p.p_expl_mc || 0) : 0;
+  const total = mat + transp + expl;
+
+  let impozit = 0;
+  if (n.tip === "INTRARE_DIN_PARTIDA_PROPRIE") impozit = (mat + expl) * DATA.tax_rate;
+  else if (n.tip === "IESIRE_DIN_DEPOZIT_LR") impozit = mat * DATA.tax_rate;
+
+  return { mat, transp, expl, total, impozit, uLr, uLf, uCh, priced: depositComplete(dep) };
+}
+
+/* ---------- category stats (port of _aggregate_category_statistics) ---------- */
+function aggregate(list) {
+  const s = {
+    n: list.length, vMat: 0, vLr: 0, vLf: 0, vCh: 0,
+    pMat: 0, pTransp: 0, pExpl: 0, pTotal: 0, impozit: 0,
+    priced: list.length > 0,
+  };
+  let lrC = 0, lrV = 0, lfC = 0, lfV = 0, chC = 0, chV = 0, matC = 0, matV = 0;
+  for (const n of list) {
+    const c = computeNotice(n);
+    if (!c.priced) s.priced = false;
+    s.vMat += n.v_total; s.vLr += n.v_lr; s.vLf += n.v_lf; s.vCh += n.v_ch;
+    s.pMat += c.mat; s.pTransp += c.transp; s.pExpl += c.expl; s.pTotal += c.total; s.impozit += c.impozit;
+    if (n.v_lr > 0) { lrC += n.v_lr * c.uLr; lrV += n.v_lr; }
+    if (n.v_lf > 0) { lfC += n.v_lf * c.uLf; lfV += n.v_lf; }
+    if (n.v_ch > 0) { chC += n.v_ch * c.uCh; chV += n.v_ch; }
+    if (n.v_total > 0) { matC += c.mat; matV += n.v_total; }
+  }
+  const wavg = (c, v) => v > 0 ? r2(c / v) : 0;
+  return {
+    ...s,
+    vMat: r6(s.vMat), vLr: r6(s.vLr), vLf: r6(s.vLf), vCh: r6(s.vCh),
+    pMat: r2(s.pMat), pTransp: r2(s.pTransp), pExpl: r2(s.pExpl),
+    pTotal: r2(s.pTotal), impozit: r2(s.impozit),
+    vAvg: s.n ? r2(s.vMat / s.n) : 0,
+    avgLr: wavg(lrC, lrV), avgLf: wavg(lfC, lfV), avgCh: wavg(chC, chV), avgMat: wavg(matC, matV),
+  };
+}
+
+/* ---------- prestări marking ----------
+   Any notice EXCEPT "Intrare din partidă proprie" can be marked as prestare
+   (service for a third party). Marks live in localStorage per period. */
+const prestariSet = new Set(DATA.prestari_codes);
+try {
+  const savedP = JSON.parse(localStorage.getItem(LS_PRESTARI) || "null");
+  if (Array.isArray(savedP)) {
+    const valid = new Set(DATA.notices.map(n => n.cod));
+    savedP.filter(c => valid.has(c)).forEach(c => prestariSet.add(c));
+  }
+} catch (e) { /* corrupted storage — file marks win */ }
+
+const canBePrestare = n => n.tip !== "INTRARE_DIN_PARTIDA_PROPRIE";
+
+function togglePrestare(cod, on) {
+  if (on) prestariSet.add(cod); else prestariSet.delete(cod);
+  try { localStorage.setItem(LS_PRESTARI, JSON.stringify([...prestariSet])); } catch (e) {}
+
+  // Refresh the other views (hidden tabs) and chip counts, but patch the
+  // visible table row in place — a full rebuild flashes the screen.
+  renderTiles(); renderSortimentChart(); renderStats(); renderAvizeFilters();
+
+  if (avizeFilter.type === "pin" || avizeFilter.type === "pout") { renderAvize(); return; }
+  const tr = document.querySelector(`#tbl-avize tr.nrow[data-cod="${CSS.escape(cod)}"]`);
+  if (tr) tr.classList.toggle("prest-row", on);
+}
+
+/* ---------- categories ---------- */
+function categories() {
+  const all = DATA.notices;
+  return {
+    all,
+    in_:  all.filter(n => INTRARE_T.has(n.tip)),
+    out:  all.filter(n => IESIRE_T.has(n.tip)),
+    pin:  all.filter(n => prestariSet.has(n.cod) && INTRARE_T.has(n.tip)),
+    pout: all.filter(n => prestariSet.has(n.cod) && IESIRE_T.has(n.tip)),
+    ein:  all.filter(n => n.tip === "INTRARE_DIN_PARTIDA_PROPRIE"),
+    eout: all.filter(n => n.tip === "IESIRE_DIN_DEPOZIT_LR"),
+  };
+}
+
+/* ---------- formatting ---------- */
+const nfMoney = new Intl.NumberFormat("ro-RO", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const nfVol = new Intl.NumberFormat("ro-RO", { maximumFractionDigits: 6 });
+const nfInt = new Intl.NumberFormat("ro-RO");
+const DASH = '<span class="dash">—</span>';
+const money = (v, priced) => priced ? nfMoney.format(r2(v)) : DASH;
+const vol = v => nfVol.format(r6(v));
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+/* ---------- species aggregation (port of _aggregate_species_volumes) ---------- */
+function speciesTotals(list, key) {
+  const out = {};
+  for (const n of list) for (const [sp, v] of Object.entries(n[key] || {})) out[sp] = (out[sp] || 0) + v;
+  for (const sp in out) out[sp] = r6(out[sp]);
+  return out;
+}
+
+/* ================= rendering ================= */
+
+function renderHeader() {
+  document.getElementById("hd-company").textContent = "Raport SUMAL — " + DATA.company;
+  document.getElementById("hd-sub").textContent = "CUI " + DATA.cui + " · " + DATA.notices.length + " avize procesate";
+  document.getElementById("hd-period").textContent = DATA.period.start + " – " + DATA.period.end;
+  document.getElementById("hd-generated").textContent = "generat " + DATA.generated_at;
+  document.getElementById("n-avize").textContent = DATA.notices.length;
+  document.getElementById("n-dep").textContent = DATA.deposits.length;
+  document.getElementById("foot").textContent =
+    "Raport generat automat din datele SUMAL · " + DATA.company + " · " + DATA.generated_at;
+  document.title = "Raport SUMAL " + DATA.period.start + " – " + DATA.period.end;
+}
+
+function renderTiles() {
+  const c = categories();
+  const all = aggregate(c.all), tin = aggregate(c.in_), tout = aggregate(c.out);
+  const missing = DATA.deposits.filter(d => !depositComplete(d)).length;
+  const t = [
+    ["Număr avize", nfInt.format(all.n), ""],
+    ["Volum total", vol(all.vMat), "m³"],
+    ["Volum intrări", vol(tin.vMat), "m³"],
+    ["Volum ieșiri", vol(tout.vMat), "m³"],
+    ["Preț total general", money(all.pTotal, all.priced), all.priced ? "RON" : ""],
+    ["Impozit (0,5%)", money(all.impozit, all.priced), all.priced ? "RON" : ""],
+  ];
+  document.getElementById("tiles").innerHTML = t.map(([k, v, u]) =>
+    `<div class="tile"><div class="k">${k}</div><div class="v">${v} <span class="u">${u}</span></div></div>`
+  ).join("") + (missing
+    ? `<div class="tile" style="border-color:var(--warning)"><div class="k">⚠ Prețuri lipsă</div>
+       <div class="v">${missing} <span class="u">depozite</span></div>
+       <div class="k">completează în tabul „Depozite &amp; prețuri”</div></div>`
+    : "");
+}
+
+function renderSortimentChart() {
+  const c = categories();
+  const rows = [
+    ["Lemn rotund", aggregate(c.in_).vLr, aggregate(c.out).vLr],
+    ["Lemn foc",    aggregate(c.in_).vLf, aggregate(c.out).vLf],
+    ["Cherestele",  aggregate(c.in_).vCh, aggregate(c.out).vCh],
+  ];
+  const max = Math.max(1e-9, ...rows.flatMap(r => [r[1], r[2]]));
+  document.getElementById("chart-sortimente").innerHTML = rows.map(([lbl, vin, vout]) => `
+    <div class="row"><div class="lbl">${lbl} — intrări</div>
+      <div class="track"><div class="bar" style="width:${(vin / max * 100).toFixed(2)}%" title="${lbl} intrări: ${vol(vin)} m³"></div></div>
+      <div class="val">${vol(vin)} m³</div></div>
+    <div class="row" style="margin-bottom:8px"><div class="lbl">${lbl} — ieșiri</div>
+      <div class="track"><div class="bar g" style="width:${(vout / max * 100).toFixed(2)}%" title="${lbl} ieșiri: ${vol(vout)} m³"></div></div>
+      <div class="val">${vol(vout)} m³</div></div>`).join("");
+}
+
+function renderStats() {
+  const c = categories();
+  const cats = [c.all, c.in_, c.out, c.pin, c.pout, c.ein, c.eout].map(aggregate);
+  const heads = ["Categorie", "Total avize", "Total intrări", "Total ieșiri",
+                 "Prestări intrare", "Prestări ieșire", "Exploatare intrare", "Exploatare ieșire"];
+  // Empty categories (e.g. no prestări marked) show a dash across the board
+  // instead of a wall of zeros
+  const volRow = (lbl, key) => row(lbl, cats.map(s => s.n === 0 ? DASH : vol(s[key])));
+  const moneyRow = (lbl, key) => row(lbl, cats.map(s => s.n === 0 ? DASH : money(s[key], s.priced)));
+  const row = (lbl, vals) =>
+    `<tr><td class="l" style="font-weight:600">${lbl}</td>${vals.map(v => `<td class="num">${v}</td>`).join("")}</tr>`;
+  const block = lbl => `<tr class="block"><td colspan="8">${lbl}</td></tr>`;
+
+  const avgRow = (lbl, key) => row(lbl, cats.map((s, i) =>
+    (i === 0 || s.n === 0) ? DASH : money(s[key], s.priced)));
+
+  document.getElementById("tbl-stats").innerHTML =
+    `<thead><tr>${heads.map((h, i) => `<th class="${i ? "" : "l"}">${h}</th>`).join("")}</tr></thead><tbody>` +
+    block("VOLUME (m³)") +
+    volRow("Volum total materiale", "vMat") + volRow("Volum total Lemn rotund", "vLr") +
+    volRow("Volum total Lemn foc", "vLf") + volRow("Volum total Cherestele", "vCh") +
+    row("Volum mediu / aviz", cats.map(s => s.n === 0 ? DASH : vol(s.vAvg))) +
+    block("PREȚURI (RON)") +
+    moneyRow("Preț total materiale", "pMat") + moneyRow("Preț total transport", "pTransp") +
+    moneyRow("Preț total exploatare", "pExpl") + moneyRow("Preț total general", "pTotal") +
+    moneyRow("Valoare totală impozit", "impozit") +
+    block("PREȚURI MEDII PE SORTIMENT (RON / m³)") +
+    avgRow("Preț mediu Lemn rotund", "avgLr") + avgRow("Preț mediu Lemn foc", "avgLf") +
+    avgRow("Preț mediu Cherestele", "avgCh") + avgRow("Preț mediu materiale", "avgMat") +
+    block("ALTE STATISTICI") +
+    row("Număr avize", cats.map(s => nfInt.format(s.n))) +
+    row("Număr mijloace transport", [nfInt.format(new Set(DATA.notices.map(n => n.transport).filter(Boolean)).size), "", "", "", "", "", ""]) +
+    row("Număr depozite utilizate", [nfInt.format(new Set(DATA.notices.map(n => n.provenienta).filter(Boolean)).size), "", "", "", "", "", ""]) +
+    "</tbody>";
+}
+
+/* ---------- avize table ---------- */
+const avizeFilter = { type: "all", transport: "", q: "" };
+
+function noticeMatches(n) {
+  if (avizeFilter.type === "in" && !INTRARE_T.has(n.tip)) return false;
+  if (avizeFilter.type === "out" && !IESIRE_T.has(n.tip)) return false;
+  if (avizeFilter.type === "ein" && n.tip !== "INTRARE_DIN_PARTIDA_PROPRIE") return false;
+  if (avizeFilter.type === "eout" && n.tip !== "IESIRE_DIN_DEPOZIT_LR") return false;
+  if (avizeFilter.type === "pin" && !(prestariSet.has(n.cod) && INTRARE_T.has(n.tip))) return false;
+  if (avizeFilter.type === "pout" && !(prestariSet.has(n.cod) && IESIRE_T.has(n.tip))) return false;
+  if (avizeFilter.transport && n.transport !== avizeFilter.transport) return false;
+  if (avizeFilter.q) {
+    const q = avizeFilter.q.toLowerCase();
+    if (!n.cod.toLowerCase().includes(q) && !n.provenienta.toLowerCase().includes(q)) return false;
+  }
+  return true;
+}
+
+const expandedSet = new Set();
+
+function noticeDetailHtml(n, c) {
+  const kv = (k, v, cls = "") => `<div class="kv ${cls}"><span class="k">${k}</span><span class="v">${v}</span></div>`;
+  const speciesLines = dict => Object.entries(dict || {}).sort((a, b) => b[1] - a[1])
+    .map(([sp, v]) => `<div class="sp">${esc(sp)} · ${vol(v)} m³</div>`).join("");
+  const volBlock = (lbl, v, dict) => v > 0
+    ? kv(lbl, vol(v) + " m³") + speciesLines(dict)
+    : "";
+  const isIn = INTRARE_T.has(n.tip);
+  const unit = (lbl, v) => kv(lbl, c.priced ? nfMoney.format(v) : "—");
+  const dep = depositByName[n.provenienta];
+  return `<div class="dgrid">
+    <div class="dcard"><h4>Volume pe sortiment</h4>
+      ${volBlock("Lemn rotund", n.v_lr, n.specii_lr)}
+      ${volBlock("Lemn foc", n.v_lf, n.specii_lf)}
+      ${volBlock("Cherestele", n.v_ch, n.specii_ch)}
+      ${kv("Volum total aviz", vol(n.v_total) + " m³", "tot")}
+    </div>
+    <div class="dcard"><h4>Prețuri unitare aplicate (RON/m³)</h4>
+      ${n.v_lr > 0 ? unit((isIn ? "Intrare" : "Ieșire") + " Lemn rotund", c.uLr) : ""}
+      ${n.v_lf > 0 ? unit((isIn ? "Intrare" : "Ieșire") + " Lemn foc", c.uLf) : ""}
+      ${n.v_ch > 0 ? unit((isIn ? "Intrare" : "Ieșire") + " Cherestele", c.uCh) : ""}
+      ${unit("Transport", (prices[dep.nume].p_transport_mc || 0))}
+      ${EXPL_T.has(n.tip) ? unit("Exploatare", (prices[dep.nume].p_expl_mc || 0)) : ""}
+      <div class="kv"><span class="k">Depozit</span><span class="v">${esc(dep.tip_label)}</span></div>
+    </div>
+    <div class="dcard"><h4>Costuri (RON)</h4>
+      ${kv("Materiale", money(c.mat, c.priced))}
+      ${kv("Transport", money(c.transp, c.priced))}
+      ${EXPL_T.has(n.tip) ? kv("Exploatare", money(c.expl, c.priced)) : ""}
+      ${kv("Total aviz", money(c.total, c.priced), "tot")}
+      ${(n.tip === "INTRARE_DIN_PARTIDA_PROPRIE" || n.tip === "IESIRE_DIN_DEPOZIT_LR")
+        ? kv("Impozit punere în piață (0,5%)", money(c.impozit, c.priced)) : ""}
+    </div>
+  </div>`;
+}
+
+function renderAvize() {
+  const list = DATA.notices.filter(noticeMatches);
+  const heads = ["", "#", "Cod unic", "Data", "Tip aviz", "Prestare",
+    "Proveniență", "Transport", "V total (m³)", "Total aviz (RON)"];
+  const NCOLS = heads.length;
+  let sum = { v: 0, tot: 0 };
+  let allPriced = true;
+
+  const rows = list.map((n, i) => {
+    const c = computeNotice(n);
+    if (!c.priced) allPriced = false;
+    sum.v += n.v_total; sum.tot += c.total;
+    const dir = INTRARE_T.has(n.tip) ? "in" : "out";
+    const isPrest = prestariSet.has(n.cod);
+    const isOpen = expandedSet.has(n.cod);
+    const prestCell = canBePrestare(n)
+      ? `<label class="tgl" title="Marchează ca prestare">
+           <input type="checkbox" data-prestare="${esc(n.cod)}" ${isPrest ? "checked" : ""}>
+           <span class="sl"></span></label>`
+      : `<span class="dash" title="Intrările din partidă proprie nu pot fi prestări">—</span>`;
+    const main = `<tr class="nrow ${isPrest ? "prest-row" : ""} ${isOpen ? "open" : ""}" data-cod="${esc(n.cod)}">
+      <td class="num dim"><span class="chev">▶</span></td>
+      <td class="num dim">${i + 1}</td>
+      <td class="l" style="font-family:ui-monospace,monospace;font-size:11.5px">${esc(n.cod)}</td>
+      <td class="num" style="font-size:12.5px">${esc(n.data)}</td>
+      <td class="l"><span class="badge ${dir}">${esc(n.tip_label)}</span></td>
+      <td class="l">${prestCell}</td>
+      <td class="l crop" title="${esc(n.provenienta)}">${esc(n.provenienta)}</td>
+      <td class="l" style="font-size:12.5px">${esc(n.transport)}</td>
+      <td class="num">${vol(n.v_total)}</td>
+      <td class="num"><b>${money(c.total, c.priced)}</b></td></tr>`;
+    const detail = isOpen
+      ? `<tr class="detail"><td colspan="${NCOLS}">${noticeDetailHtml(n, c)}</td></tr>` : "";
+    return main + detail;
+  });
+
+  const totalRow = list.length ? `<tr class="total">
+    <td class="l" colspan="8">TOTAL — ${nfInt.format(list.length)} avize (filtrate)</td>
+    <td class="num">${vol(sum.v)}</td>
+    <td class="num">${money(sum.tot, allPriced)}</td></tr>`
+    : `<tr><td class="l dim" colspan="${NCOLS}">Nici un aviz de afișat</td></tr>`;
+
+  const tbl = document.getElementById("tbl-avize");
+  tbl.innerHTML =
+    `<thead><tr>${heads.map((h, i) => `<th class="${(i >= 2 && i <= 7) ? "l" : ""}">${h}</th>`).join("")}</tr></thead>` +
+    `<tbody>${rows.join("")}${totalRow}</tbody>`;
+
+  tbl.querySelectorAll("input[data-prestare]").forEach(cb =>
+    cb.addEventListener("change", e => { e.stopPropagation(); togglePrestare(cb.dataset.prestare, cb.checked); }));
+  tbl.querySelectorAll("tr.nrow").forEach(tr => tr.addEventListener("click", e => {
+    if (e.target.closest(".tgl")) return; // toggle clicks don't expand
+    const cod = tr.dataset.cod;
+    expandedSet.has(cod) ? expandedSet.delete(cod) : expandedSet.add(cod);
+    renderAvize();
+  }));
+}
+
+function renderAvizeFilters() {
+  const c = categories();
+  const chips = [
+    ["all", "Toate", c.all.length], ["in", "Intrări", c.in_.length], ["out", "Ieșiri", c.out.length],
+    ["ein", "Exploatare intrare", c.ein.length], ["eout", "Exploatare ieșire", c.eout.length],
+    ["pin", "Prestări intrare", c.pin.length], ["pout", "Prestări ieșire", c.pout.length],
+  ];
+  document.getElementById("type-chips").innerHTML = chips.map(([id, lbl, n]) =>
+    `<button class="chipbtn ${avizeFilter.type === id ? "on" : ""}" data-type="${id}">${lbl} · ${n}</button>`).join("");
+  document.querySelectorAll("#type-chips .chipbtn").forEach(b =>
+    b.addEventListener("click", () => { avizeFilter.type = b.dataset.type; renderAvizeFilters(); renderAvize(); }));
+
+  const sel = document.getElementById("f-transport");
+  if (sel.options.length === 1) {
+    [...new Set(DATA.notices.map(n => n.transport).filter(Boolean))].sort().forEach(t => {
+      const o = document.createElement("option"); o.value = t; o.textContent = t; sel.appendChild(o);
+    });
+  }
+}
+
+/* ---------- species tab ---------- */
+function renderSpecies() {
+  const c = categories();
+  const paint = (el, list, barClass) => {
+    const sections = [
+      ["LEMN ROTUND", speciesTotals(list, "specii_lr")],
+      ["LEMN FOC", speciesTotals(list, "specii_lf")],
+      ["CHERESTELE", speciesTotals(list, "specii_ch")],
+    ];
+    el.innerHTML = sections.map(([lbl, dict]) => {
+      const entries = Object.entries(dict).sort((a, b) => b[1] - a[1]);
+      if (!entries.length) return `<div class="grp"><h3>${lbl}</h3><div class="hint">Fără volume</div></div>`;
+      const total = r6(entries.reduce((a, [, v]) => a + v, 0));
+      return `<div class="grp"><h3><span>${lbl}</span><span class="tchip">${vol(total)} m³</span></h3><div class="bars">` +
+        entries.map(([sp, v]) => {
+          const pct = total > 0 ? (v / total * 100) : 0;
+          const pctTxt = pct >= 10 ? Math.round(pct) : pct.toFixed(1);
+          return `<div class="row"><div class="lbl" title="${esc(sp)}">${esc(sp)}</div>
+            <div class="track"><div class="bar ${barClass}" style="width:${pct.toFixed(2)}%" title="${esc(sp)}: ${vol(v)} m³ (${pctTxt}%)"></div></div>
+            <div class="val">${vol(v)} <span class="pct">· ${pctTxt}%</span></div></div>`;
+        }).join("") + `</div></div>`;
+    }).join("");
+  };
+  paint(document.getElementById("specii-in"), c.in_, "");
+  paint(document.getElementById("specii-out"), c.out, "g");
+}
+
+/* ---------- deposits tab ---------- */
+const PRICE_GROUPS = [
+  ["Intrare", ["p_intrare_lr_mc", "p_intrare_lf_mc", "p_intrare_ch_mc"]],
+  ["Ieșire", ["p_iesire_lr_mc", "p_iesire_lf_mc", "p_iesire_ch_mc"]],
+  ["Generale", ["p_transport_mc", "p_expl_mc"]],
+];
+const SHORT_LABELS = {
+  p_intrare_lr_mc: "Lemn rotund", p_intrare_lf_mc: "Lemn foc", p_intrare_ch_mc: "Cherestele",
+  p_iesire_lr_mc: "Lemn rotund", p_iesire_lf_mc: "Lemn foc", p_iesire_ch_mc: "Cherestele",
+  p_transport_mc: "Transport", p_expl_mc: "Exploatare",
+};
+
+function renderDeposits() {
+  const grid = document.getElementById("depgrid");
+  grid.innerHTML = DATA.deposits.map(d => {
+    const ok = depositComplete(d);
+    const enabled = new Set(d.enabled_fields);
+    const groups = PRICE_GROUPS
+      .map(([lbl, fields]) => [lbl, fields.filter(f => enabled.has(f))])
+      .filter(([, fields]) => fields.length)
+      .map(([lbl, fields]) =>
+        `<div class="pgrp">
+          <div class="glbl">${lbl} <span class="u">RON / m³</span></div>
+          <div class="frow">` + fields.map(f => {
+            const v = prices[d.nume][f] || 0;
+            return `<div class="fld"><span>${SHORT_LABELS[f] || f}</span>
+              <input type="number" min="0" step="0.01" inputmode="decimal"
+                class="${v > 0 ? "" : "empty"}" data-dep="${esc(d.nume)}" data-field="${f}"
+                value="${v > 0 ? v : ""}" placeholder="0" title="${FIELD_LABELS[f] || f} — ${esc(d.nume)}"></div>`;
+          }).join("") + `</div></div>`).join("");
+    return `<div class="dep" data-dep="${esc(d.nume)}">
+      <h3>${esc(d.nume)}</h3>
+      <div class="meta">
+        <span class="badge">${esc(d.tip_label)}</span>
+        <span class="badge">${esc(d.sursa)}</span>
+        <span class="state ${ok ? "ok" : "miss"}">${ok ? "✓ complet" : "✗ prețuri lipsă"}</span>
+      </div>
+      ${groups}
+    </div>`;
+  }).join("");
+
+  grid.querySelectorAll("input").forEach(inp => inp.addEventListener("input", () => {
+    const v = parseFloat(inp.value);
+    prices[inp.dataset.dep][inp.dataset.field] = isFinite(v) && v > 0 ? v : 0;
+    inp.classList.toggle("empty", !(v > 0));
+    persist();
+    renderMoney();
+    refreshDepStates();
+  }));
+
+  document.getElementById("btn-export").onclick = () => {
+    const blob = new Blob([JSON.stringify(prices, null, 2)], { type: "application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "deposit_prices.json";
+    a.click();
+    URL.revokeObjectURL(a.href);
+  };
+  document.getElementById("btn-reset").onclick = () => {
+    if (!confirm("Renunți la valorile introduse în browser și revii la cele din fișier?")) return;
+    localStorage.removeItem(LS_KEY);
+    prices = filePrices();
+    renderDeposits(); renderMoney();
+  };
+}
+
+function refreshDepStates() {
+  document.querySelectorAll(".dep[data-dep]").forEach(el => {
+    const d = depositByName[el.dataset.dep];
+    const ok = depositComplete(d);
+    const st = el.querySelector(".state");
+    st.className = "state " + (ok ? "ok" : "miss");
+    st.textContent = ok ? "✓ complet" : "✗ prețuri lipsă";
+  });
+}
+
+function persist() {
+  try {
+    localStorage.setItem(LS_KEY, JSON.stringify(prices));
+    document.getElementById("save-hint").textContent =
+      "Salvat în browser la " + new Date().toLocaleTimeString("ro-RO") +
+      " — nu uita de export pentru rulările viitoare.";
+  } catch (e) { /* storage unavailable — session-only edits */ }
+}
+
+/* ---------- orchestration ---------- */
+function renderMoney() { renderTiles(); renderSortimentChart(); renderStats(); renderAvize(); }
+
+document.querySelectorAll("nav button").forEach(b => b.addEventListener("click", () => {
+  document.querySelectorAll("nav button").forEach(x => x.classList.toggle("on", x === b));
+  document.querySelectorAll("main .tab").forEach(s => s.classList.toggle("on", s.id === "tab-" + b.dataset.tab));
+}));
+document.getElementById("f-transport").addEventListener("change", e => { avizeFilter.transport = e.target.value; renderAvize(); });
+document.getElementById("f-search").addEventListener("input", e => { avizeFilter.q = e.target.value.trim(); renderAvize(); });
+
+renderHeader();
+renderAvizeFilters();
+renderSpecies();
+renderDeposits();
+renderMoney();
+</script>
+</body>
+</html>

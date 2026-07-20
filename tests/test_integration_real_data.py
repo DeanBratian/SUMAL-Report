@@ -14,7 +14,7 @@ import openpyxl
 import pytest
 from unittest.mock import MagicMock
 
-from controllers.main_controller import MainController
+from core.pipeline import ReportPipeline
 from core.config import DEPOSIT_DATA_ENABLED_FIELDS_BY_TYPE
 from core.enums import FolderStatus, NoticeType
 from core.utils import extract_base_name
@@ -74,7 +74,7 @@ def as_decimal(value: float) -> Decimal:
 def pipeline(tmp_path_factory):
     """Run the full pipeline once for the whole module: parse, fill deterministic
     prices, generate the report, and return everything needed for assertions."""
-    ctrl = MainController(MagicMock())
+    ctrl = ReportPipeline(MagicMock())
     ctrl.set_folder(INPUTS_DIR)
     status, _ = ctrl.validate_folder_files()
     assert status == FolderStatus.READY

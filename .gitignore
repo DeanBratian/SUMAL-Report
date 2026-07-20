@@ -4,12 +4,14 @@ __pycache__/
 .pytest_cache/
 .ruff_cache/
 
-# PyInstaller output
-build/
-dist/
-
 # Runtime output
 logs/
+downloads/
+data/
+
+# SUMAL credentials and captured browser traffic — never commit
+secrets.local.json
+*.har
 
 # Real SUMAL data (private company data — integration test skips if absent)
 # inputs/

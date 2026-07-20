@@ -5,13 +5,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Running the Application
 
 ```bash
-python app.py
+python app.py                                   # process last completed month (cron target)
+python app.py --start 01.06.2026 --end 30.06.2026
+python app.py --login-test                      # only verify sumal-map.ro login
+python app.py --folder inputs                   # process an already-downloaded folder
 ```
 
-**Dependencies** (install via `pip install -r requirements.txt`):
-- `PyQt6` — GUI framework
-- `pandas` — CSV/Excel reading
-- `openpyxl` — Excel generation and styling
+**Dependencies** (install via `pip install -r requirements.txt`): `pandas`, `openpyxl`, `requests`.
+
+**Credentials**: `SUMAL_USERNAME`/`SUMAL_PASSWORD` env vars, or git-ignored `secrets.local.json` (`{"username": ..., "password": ...}`).
 
 ## Running Tests
 
@@ -19,56 +21,37 @@ python app.py
 python -m pytest tests/ -v
 ```
 
-## Building the Executable
-
-```bash
-pip install pyinstaller
-pyinstaller sumal_report.spec
-```
-
-Output: `dist/SUMAL Report.exe` (single-file, no-console Windows build).
-
 ## Architecture
 
-This is a **PyQt6 desktop GUI application** (MVC pattern) for processing Romanian timber transport notices (SUMAL) and generating Excel reports. The company context is "Brat Valms Service Tur S.R.L." (constants in `core/config.py`).
+**Headless backend** (no UI — the former PyQt6 GUI was removed in July 2026) for processing Romanian timber transport notices (SUMAL) and generating period reports. Runs unattended (cron on the 1st of each month for the ended month); all operations are traced to `logs/sumal_report.log`. The company context is "Brat Valms Service Tur S.R.L." (constants in `core/config.py`; SUMAL company id 9052, idAngajat 16058).
 
-### Layer Overview
+### Layers
 
-- **`core/`** — Business logic, no UI dependencies
-  - `models.py` — Dataclass models: `TransportNoticeModel`, `WoodItemModel`, `DepozitDataModel`, Excel mapping models
-  - `csv_reader.py` / `excel_reader.py` — Parse input files into models
-  - `report_generator.py` — Generates multi-sheet `.xlsx` reports; all values are precomputed in Python and written as static numbers (only the per-sheet TOTAL row uses a SUBTOTAL formula so it follows table filters)
-  - `config.py` — `APP_CONFIG` (company identity, tax rate, date formats), `VOLUME_PRECISION`/`PRICE_PRECISION`, `DEPOSIT_DATA_ENABLED_FIELDS_BY_TYPE`
-  - `enums.py` — `NoticeType`, `GoodType`, `DepositType`, `AppState`, `FolderStatus`, etc.
-  - `resources.py` — `APP_RESOURCES`: path resolution for source vs. PyInstaller-frozen runs, stylesheet loading
-  - `utils.py` — Small helpers: `normalize_field`, `extract_base_name`, `refresh_style`, `float_to_display_str`
-  - `logger.py` — Wraps Python logging; outputs to both console and `logs/sumal_report.log`
-  - `sr_error.py` — `SRError(message, title="Eroare")` custom exception for user-facing errors
-
-- **`ui/`** — PyQt6 widgets only; styled via `styles.qss`
-  - `main_window.py` — Central window with notice table
-  - `deposit_data_window.py` / `deposit_card_widget.py` — Deposit pricing dialog
-  - `notice_details_window.py` — Read-only detail viewer
-  - `toggle_switch_button.py` — Custom animated toggle switch for prestări marking
-
-- **`controllers/`** — Mediates between `core/` and `ui/`
-  - `main_controller.py` — Orchestrates file detection, parsing, validation, report generation
-  - `deposit_data_controller.py` — Handles saving/loading user-entered deposit pricing data
-  - `notice_details_controller.py` — Formats notice fields for the read-only detail viewer
+- **`app.py`** — CLI entrypoint: resolves the target period, logs in, downloads, runs the pipeline.
+- **`sumal/`** — sumal-map.ro HTTP automation
+  - `config.py` — endpoints, credential loading; documents the captured OAuth2 login flow
+  - `client.py` — `SumalClient`: Spring Security form login (`_csrf` + username/password POST to `/auth/login`, server-side code exchange, `SESSION` cookies, 24h expiry). Detects the sometimes-active login captcha (`CaptchaRequiredError`) — it cannot be solved headless.
+  - `downloader.py` — `SumalDownloader`: fetches the period's Avize Electronice / Intrari NIR / Depozite Excel exports + per-notice CSVs. **Endpoints are implemented from user-captured HAR files; capture-pending methods raise SRError.**
+- **`core/`** — business logic
+  - `pipeline.py` — `ReportPipeline` (ex-MainController): folder file detection, parsing, cross-validation (notices vs. control Excels, type inference, volume checks), deposit initialization, report generation
+  - `models.py`, `csv_reader.py`, `excel_reader.py`, `report_generator.py`, `config.py`, `enums.py`, `utils.py`, `logger.py`, `sr_error.py` — as before
+  - `deposit_prices.py` — headless replacement for the old pricing dialog: per-period `deposit_prices.json` in the run folder, auto-synced with detected deposits; unfilled fields block report generation with a clear error
 
 ### Data Flow
 
-1. User selects a folder → `MainController` detects CSV + 3 Excel control files (`Intrari_*.xlsx`, `Aviz_*.xlsx`, `Depozite_*.xlsx`)
-2. `CsvReader` / `ExcelReader` parse files into dataclass models
-3. Notices are classified into 4 types based on sender/recipient, volumes are calculated per good type/species, and validated (no unknown types/sortiments, item volumes must sum to notice total)
-4. Notices are sorted by `data_ora_emitere` ascending
-5. `DepositDataWindow` prompts user for pricing data per deposit
-6. `ReportGenerator.generate_report()` produces the final multi-sheet Excel output
+1. Period resolved (`--start/--end` or last completed month) → files downloaded into `downloads/<start>_<end>/`
+2. Pipeline detects CSV + 3 control Excels (`Intrari_*.xlsx`, `Aviz_*.xlsx`, `Depozite_*.xlsx`), parses into dataclass models
+3. Notices classified into 4 types (intrare din partidă proprie etc.), volumes computed per good type/species, validated, sorted by `data_ora_emitere`
+4. Deposit prices applied from `deposit_prices.json`; report generated in the run folder
 
-### Deposit Types
+### Planned (see memory)
 
-Three deposit types (LR/temporary, main, external) each require different pricing fields. Type inference is in `models.py`, enabled fields per type are defined in `config.py` (`DEPOSIT_DATA_ENABLED_FIELDS_BY_TYPE`).
+SQLite database for species/sortiments and stock ledger; HTML report replacing the Excel output (same report math, plus price statistics — medians etc. — from deposit prices).
 
 ### Error Handling
 
-Raise `SRError(message, title="Eroare")` for user-facing errors — the UI catches and displays these as dialogs. Use the logging system (`core/logger.py`) for debug/trace output; logs go to `logs/`.
+Raise `SRError(message, title="Eroare")` for user-facing errors — `app.py` catches, logs and exits non-zero (1 = SRError, 2 = unexpected). Use `core/logger.py` for all trace output.
+
+## Security Notes
+
+- `secrets.local.json`, `*.har` captures and `downloads/` are git-ignored — never commit them (HARs contain the plaintext password and session cookies).

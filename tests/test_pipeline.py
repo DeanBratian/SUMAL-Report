@@ -3,7 +3,7 @@ import os
 import tempfile
 from unittest.mock import MagicMock
 from openpyxl import Workbook as XlWorkbook
-from controllers.main_controller import MainController
+from core.pipeline import ReportPipeline
 from core.models import CSVParseResult, DepozitDataModel
 from core.enums import NoticeType, DepositType, CSVParseStatus, FolderStatus, DepozitSource
 from core.config import DEPOSIT_DATA_ENABLED_FIELDS_BY_TYPE
@@ -12,7 +12,7 @@ from tests.conftest import make_notice, make_deposit_data, make_depozite_excel_e
 
 @pytest.fixture
 def ctrl():
-    return MainController(MagicMock())
+    return ReportPipeline(MagicMock())
 
 # ---------------------------------------------------------------------- #
 
@@ -44,28 +44,6 @@ class TestCapabilityGates:
     def test_can_start_parsing_requires_all_conditions(self, ctrl):
         # Nothing set -> False
         assert not ctrl.can_start_parsing()
-
-    # ---------------------------------------------------------------------- #
-
-    def test_can_edit_deposit_data_requires_parsed(self, ctrl):
-        assert ctrl.can_edit_deposit_data() is False
-
-        ctrl.is_parsed = True
-        ctrl.notices = [MagicMock()]
-        ctrl.deposit_data = [MagicMock()]
-        ctrl.csv_parse_results = [CSVParseResult("a.csv", CSVParseStatus.OK)]
-        assert ctrl.can_edit_deposit_data() is True
-
-    # ---------------------------------------------------------------------- #
-    
-    def test_can_edit_deposit_data_requires_parsed_errors(self, ctrl):
-        assert ctrl.can_edit_deposit_data() is False
-
-        ctrl.is_parsed = True
-        ctrl.notices = [MagicMock()]
-        ctrl.deposit_data = [MagicMock()]
-        ctrl.csv_parse_results = [CSVParseResult("a.csv", CSVParseStatus.OK), CSVParseResult("b.csv", CSVParseStatus.ERROR)]
-        assert ctrl.can_edit_deposit_data() is False
 
     # ---------------------------------------------------------------------- #
 
@@ -167,22 +145,6 @@ class TestDepositDataValidation:
         ctrl.deposit_data = [dd]
         assert ctrl._validate_all_deposit_data_entries() is True
 
-
-# ---------------------------------------------------------------------- #
-
-class TestTableData:
-
-    def test_get_notice_returns_none_for_invalid_index(self, ctrl):
-        assert ctrl.get_notice(0) is None
-        assert ctrl.get_notice(-1) is None
-
-    # ---------------------------------------------------------------------- #
-
-    def test_get_notice_returns_correct(self, ctrl):
-        n = make_notice(cod_unic="TEST")
-        n.type = NoticeType.INTRARE_DIN_SURSA_EXTERNA
-        ctrl.notices = [n]
-        assert ctrl.get_notice(0).cod_unic == "TEST"
 
 # ---------------------------------------------------------------------- #
 
@@ -483,27 +445,6 @@ class TestInitializeDepositDataEdgeCases:
         assert "Dep Excel" in names
         assert "Firma Externa" in names
         assert "Firma Externa" in external
-
-# ---------------------------------------------------------------------- #
-
-class TestTableDataStructure:
-
-    def test_table_data_has_expected_keys(self, ctrl):
-        n = make_notice(cod_unic = "ABC123")
-        n.type = NoticeType.IESIRE_DIN_DEPOZIT_PRINCIPAL
-        ctrl.notices = [n]
-        table_data = ctrl.get_main_window_table_data()
-
-        row = table_data[0]
-        assert set(row.keys()) == {"cod_unic", "data", "emitent", "destinatar", "volum", "tip"}
-        assert row["cod_unic"] == "ABC123"
-        assert "m³" in row["volum"]
-
-    # ---------------------------------------------------------------------- #
-
-    def test_empty_notices_returns_empty_list(self, ctrl):
-        ctrl.notices = []
-        assert ctrl.get_main_window_table_data() == []
 
 # ---------------------------------------------------------------------- #
 

@@ -2,17 +2,19 @@ import os
 from core.csv_reader import CsvReader
 from core.excel_reader import ExcelReader
 from core.logger import Logger
-from core.utils import extract_base_name, float_to_display_str
+from core.utils import extract_base_name
 from core.enums import CSVParseStatus, DepozitSource, DepositType, NoticeType, FolderStatus
-from core.config import APP_CONFIG, DEPOSIT_DATA_ENABLED_FIELDS_BY_TYPE
+from core.config import DEPOSIT_DATA_ENABLED_FIELDS_BY_TYPE
 from core.models import (
-    IntrariExcelModel, AvizExcelModel, DepoziteExcelModel, 
+    IntrariExcelModel, AvizExcelModel, DepoziteExcelModel,
     CSVParseResult, DepozitDataModel, TransportNoticeModel
 )
 from core.report_generator import ReportGenerator
 from core.sr_error import SRError
 
-class MainController:
+class ReportPipeline:
+    """Headless processing pipeline: detect the period's downloaded files in a
+    folder, parse and validate them, initialize deposit data and generate the report."""
     def __init__(self, logger: Logger):
         self.logger = logger
         self.csv_reader: CsvReader = CsvReader(self.logger)
@@ -173,7 +175,7 @@ class MainController:
     # ---------------------------------------------------------------------- #
 
     def validate_folder_files(self) -> tuple[FolderStatus, dict[str, int]]:
-        """Detect CSV and Excel files, return status and data for UI display"""
+        """Detect CSV and Excel files, return status and counts for logging"""
         self.detect_csv_files()
         correct_nr_xls: bool = self.detect_excel_files()
 
@@ -350,7 +352,7 @@ class MainController:
 
     def initialize_deposit_data(self) -> tuple[set[str], set[str]]:
         """Build deposit_data from parsed entries, filtering out deposits unreferenced by any notice.
-        Returns (external_deposits, ignored_deposits) for the UI to display. Raise SRE on unknown deposit type"""
+        Returns (external_deposits, ignored_deposits) for logging/reporting. Raise SRE on unknown deposit type"""
         self.deposit_data.clear()
 
         # All provenienta values actually used in notices
@@ -455,34 +457,10 @@ class MainController:
 
     # ---------------------------------------------------------------------- #
 
-    def get_notice(self, index: int) -> TransportNoticeModel | None:
-        """Get TransportNoticeModel by index from the date sorted notice list"""
-        if 0 <= index < len(self.notices):
-            return self.notices[index]
-        return None
-    
-    # ---------------------------------------------------------------------- #
-    
     def set_deposit_data(self, data: list[DepozitDataModel]) -> None:
         """Updates the deposit data with user-edited values"""
         self.deposit_data = data
 
-    # ---------------------------------------------------------------------- #
-
-    def get_main_window_table_data(self) -> list[dict[str, str]]:
-        """Builds table data for main window table"""
-        table_data: list[dict[str, str]] = []
-        for notice in self.notices:
-            table_data.append({
-                "cod_unic": notice.cod_unic,
-                "data": notice.data_ora_emitere.strftime(APP_CONFIG.TIME_FORMAT_SHORT),
-                "emitent": notice.emitent_nume,
-                "destinatar": notice.destinatar_nume,
-                "volum": f"{float_to_display_str(notice.volum_total_aviz)} m³",
-                "tip": notice.type
-            })
-        return table_data
-    
     # ---------------------------------------------------------------------- #
 
     def get_error_files(self) -> set[str]:
@@ -514,17 +492,6 @@ class MainController:
             len(self.csv_files_dict["unique"]) > 0 and # Some CSVs exist
             len(self.xl_files_dict) == self.EXPECTED_XL_COUNT and # All control Excel files exist
             self.get_csv_count_per_excels() == len(self.csv_files_dict["all"]) # All expected CSVs exist
-        )
-
-    # ---------------------------------------------------------------------- #
-
-    def can_edit_deposit_data(self) -> bool:
-        """Criteria that must be met in order to be able to edit deposit data"""
-        return (
-            self.is_parsed and  # Has parsed
-            len(self.notices) > 0 and  # At least 1 notice
-            len(self.get_error_files()) == 0 and  # No processing errors
-            len(self.deposit_data) > 0  # Has deposit data initialized
         )
 
     # ---------------------------------------------------------------------- #

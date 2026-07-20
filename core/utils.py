@@ -28,16 +28,8 @@ def extract_base_name(filename: str) -> str:
 
 # ---------------------------------------------------------------------- #
 
-def refresh_style(*widgets):
-    """Force QSS re-evaluation on one or more widgets after a property change."""
-    for w in widgets:
-        w.style().unpolish(w)
-        w.style().polish(w)
-
-# ---------------------------------------------------------------------- #
-
 def float_to_display_str(value: float) -> str:
-    """Format a measurement (volume m3, dimensions, price) for UI display.
+    """Format a measurement (volume m3, dimensions, price) for display.
     SUMAL CSV inputs are 6-decimal strings, so values never carry meaningful
     precision below the 6th decimal. This formatter prints the real value at
     up to 6 decimals, never truncating real digits, and strips trailing zeros
